@@ -27,6 +27,16 @@ export const Colors = {
   },
 };
 
+export const COLORS = {
+  peachLight: '#FDE4D8',
+  peachMedium: '#FFB08E',
+  peachDark: '#FF9B6E',
+  brandOrange: '#FF7E4A',
+  brandNavy: '#2A3A4E',
+  graySub: '#8D9CAE',
+  bgGray: '#F5F7FA',
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
