@@ -8,6 +8,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  StyleSheet,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -133,7 +134,7 @@ export default function AccountScreen() {
                 >
                   <Image
                     source={{ uri: profile.avatarUrl }}
-                    className="w-full h-full"
+                    style={StyleSheet.absoluteFillObject}
                     contentFit="cover"
                     transition={200}
                   />

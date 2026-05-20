@@ -11,6 +11,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  StyleSheet,
   View,
 } from "react-native";
 import Animated from "react-native-reanimated";
@@ -142,6 +143,7 @@ export default function DestinationDetailScreen() {
         >
           <AnimatedImage
             source={{ uri: destination.imageUrl }}
+            style={StyleSheet.absoluteFillObject}
             className="w-full h-full"
             contentFit="cover"
             transition={300}
@@ -278,6 +280,7 @@ export default function DestinationDetailScreen() {
                     <View className="flex-row items-center gap-2.5">
                       <Image
                         source={{ uri: rev.userAvatar }}
+                        style={{ width: 32, height: 32 }}
                         className="w-8 h-8 rounded-full bg-peach-light/40"
                       />
                       <Text className="text-sm font-bold text-brand-navy">

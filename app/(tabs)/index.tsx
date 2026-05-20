@@ -10,6 +10,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -250,7 +251,8 @@ export default function HomeScreen() {
                   className="rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
                 >
                   <Image
-                      source={{ uri: dest.imageUrl }}
+                    source={{ uri: dest.imageUrl }}
+                    style={StyleSheet.absoluteFillObject}
                     className="w-full h-full"
                     contentFit="cover"
                     transition={250}
@@ -331,6 +333,7 @@ export default function HomeScreen() {
                   <View className="w-[84px] h-[84px] rounded-[20px] overflow-hidden bg-peach-light/30">
                     <Image
                       source={{ uri: item.imageUrl }}
+                      style={StyleSheet.absoluteFillObject}
                       className="w-full h-full"
                       contentFit="cover"
                       transition={200}

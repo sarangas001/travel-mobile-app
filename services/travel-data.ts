@@ -83,8 +83,20 @@ const toStringValue = (value?: string | null, fallback = "Unknown") =>
 const mapBackendCategory = (category?: string) =>
   UI_CATEGORY_MAP[category || ""] || "hiking";
 
+const isUsableImageUrl = (value?: string) => {
+  if (!value) {
+    return false;
+  }
+
+  if (!/^https?:\/\//i.test(value)) {
+    return false;
+  }
+
+  return !/example\.com|cdn\.example\.com/i.test(value);
+};
+
 const pickImageUrl = (destination: ApiDestination, index = 0) => {
-  const mediaImage = destination.media?.find((item) => item.url)?.url;
+  const mediaImage = destination.media?.find((item) => isUsableImageUrl(item.url))?.url;
   if (mediaImage) {
     return mediaImage;
   }

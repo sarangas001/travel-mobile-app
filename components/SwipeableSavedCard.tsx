@@ -3,7 +3,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -173,6 +173,7 @@ export default function SwipeableSavedCard({
             {/* Cover Image */}
             <AnimatedImage
               source={{ uri: item.imageUrl }}
+              style={StyleSheet.absoluteFillObject}
               className="w-full h-full"
               contentFit="cover"
               transition={200}

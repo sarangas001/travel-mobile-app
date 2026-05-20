@@ -1,7 +1,7 @@
 /* eslint-disable import/no-named-as-default-member */
 import axios from "axios";
 
-const API_URL =     process.env.EXPO_PUBLIC_API_URL;
+const API_URL =  'https://travel-backend-wine.vercel.app/api/v1';
 
 export const travelApi = axios.create({
   baseURL: API_URL,
