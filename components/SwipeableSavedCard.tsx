@@ -1,17 +1,19 @@
-import React from 'react';
-import { View, Text, Pressable, useWindowDimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Destination } from "@/constants/mockData";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import React from "react";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
+  runOnJS,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { Destination } from '@/constants/mockData';
+} from "react-native-reanimated";
+
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 interface SwipeableSavedCardProps {
   item: Destination;
@@ -19,9 +21,13 @@ interface SwipeableSavedCardProps {
   onDelete: () => void;
 }
 
-export default function SwipeableSavedCard({ item, onPress, onDelete }: SwipeableSavedCardProps) {
+export default function SwipeableSavedCard({
+  item,
+  onPress,
+  onDelete,
+}: SwipeableSavedCardProps) {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
-  
+
   // Dimensions and animation values
   const height = useSharedValue(220);
   const marginBottom = useSharedValue(24);
@@ -49,7 +55,10 @@ export default function SwipeableSavedCard({ item, onPress, onDelete }: Swipeabl
         runOnJS(triggerDelete)();
       } else if (translateX.value < SWIPE_THRESHOLD * 0.7) {
         // Reveal swipe panel
-        translateX.value = withSpring(SWIPE_THRESHOLD, { damping: 18, stiffness: 120 });
+        translateX.value = withSpring(SWIPE_THRESHOLD, {
+          damping: 18,
+          stiffness: 120,
+        });
       } else {
         // Snap back to initial position
         translateX.value = withSpring(0, { damping: 18, stiffness: 120 });
@@ -61,18 +70,22 @@ export default function SwipeableSavedCard({ item, onPress, onDelete }: Swipeabl
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     // Slide completely off-screen
-    translateX.value = withTiming(-SCREEN_WIDTH - 50, { duration: 250 }, (isFinished) => {
-      if (isFinished) {
-        // Fade out and collapse height and margin to 0
-        opacity.value = withTiming(0, { duration: 150 });
-        marginBottom.value = withTiming(0, { duration: 200 });
-        height.value = withTiming(0, { duration: 250 }, (finished) => {
-          if (finished) {
-            runOnJS(onDelete)();
-          }
-        });
-      }
-    });
+    translateX.value = withTiming(
+      -SCREEN_WIDTH - 50,
+      { duration: 250 },
+      (isFinished) => {
+        if (isFinished) {
+          // Fade out and collapse height and margin to 0
+          opacity.value = withTiming(0, { duration: 150 });
+          marginBottom.value = withTiming(0, { duration: 200 });
+          height.value = withTiming(0, { duration: 250 }, (finished) => {
+            if (finished) {
+              runOnJS(onDelete)();
+            }
+          });
+        }
+      },
+    );
   };
 
   const handleCardPress = () => {
@@ -104,25 +117,32 @@ export default function SwipeableSavedCard({ item, onPress, onDelete }: Swipeabl
   // Swipe delete panel (background) transitions in response to drag
   const animatedDeletePanelStyle = useAnimatedStyle(() => {
     // Slowly fade/scale trash icon as you pull it
-    const scale = translateX.value < SWIPE_THRESHOLD 
-      ? 1 + (SWIPE_THRESHOLD - translateX.value) * 0.002 
-      : 1;
+    const scale =
+      translateX.value < SWIPE_THRESHOLD
+        ? 1 + (SWIPE_THRESHOLD - translateX.value) * 0.002
+        : 1;
 
     return {
-      opacity: translateX.value < -20 ? withTiming(1, { duration: 100 }) : withTiming(0, { duration: 100 }),
+      opacity:
+        translateX.value < -20
+          ? withTiming(1, { duration: 100 })
+          : withTiming(0, { duration: 100 }),
       transform: [{ scale }],
     };
   });
 
   return (
-    <Animated.View style={[animatedContainerStyle]} className="relative w-full overflow-hidden rounded-[24px]">
+    <Animated.View
+      style={[animatedContainerStyle]}
+      className="relative w-full overflow-hidden rounded-[24px]"
+    >
       {/* 1. Underlying Delete Action Panel */}
-      <Animated.View 
-        style={[animatedDeletePanelStyle]} 
+      <Animated.View
+        style={[animatedDeletePanelStyle]}
         className="absolute inset-0 bg-rose-500 rounded-[24px] flex-row justify-end items-center"
       >
-        <Pressable 
-          onPress={triggerDelete} 
+        <Pressable
+          onPress={triggerDelete}
           className="w-[90px] h-full items-center justify-center bg-rose-600 rounded-[24px] active:bg-rose-700"
         >
           <View className="items-center gap-1.5">
@@ -138,26 +158,31 @@ export default function SwipeableSavedCard({ item, onPress, onDelete }: Swipeabl
 
       {/* 2. Overlaid Swipeable Card (Pan Gesture Target) */}
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[animatedCardStyle, { height: '100%', width: '100%' }]}>
+        <Animated.View
+          style={[animatedCardStyle, { height: "100%", width: "100%" }]}
+        >
           <Pressable
             onPress={handleCardPress}
             className="w-full h-full rounded-[24px] overflow-hidden bg-peach-light/40 relative active:opacity-98"
           >
             {/* Cover Image */}
-            <Image
+            <AnimatedImage
               source={{ uri: item.imageUrl }}
               className="w-full h-full"
               contentFit="cover"
               transition={200}
             />
-            
+
             {/* Overlay Visual Gradient (Bottom focused dark overlay) */}
             <View className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 via-transparent to-transparent" />
 
             {/* Elevated Bottom Details Card Overlay */}
             <View className="absolute bottom-4 left-4 right-4 bg-white/95 px-5 py-4 rounded-[18px] flex-row justify-between items-center shadow-md shadow-brand-navy/5">
               <View className="flex-1 pr-4">
-                <Text className="text-[17px] font-bold text-brand-navy mb-1" numberOfLines={1}>
+                <Text
+                  className="text-[17px] font-bold text-brand-navy mb-1"
+                  numberOfLines={1}
+                >
                   {item.title}
                 </Text>
                 <View className="flex-row items-center gap-1">
@@ -167,7 +192,7 @@ export default function SwipeableSavedCard({ item, onPress, onDelete }: Swipeabl
                   </Text>
                 </View>
               </View>
-              
+
               <View className="w-8 h-8 rounded-full bg-peach-light/30 items-center justify-center">
                 <Feather name="chevron-right" size={18} color="#FF7E4A" />
               </View>
