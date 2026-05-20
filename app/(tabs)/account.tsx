@@ -3,15 +3,17 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { SkeletonBlock } from "@/components/ui/skeleton";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 import { useProfileStore } from "@/store/use-profile-store";
 
 const PROFILE_OPTIONS = [
@@ -54,6 +56,7 @@ export default function AccountScreen() {
   const simulateAvatarUpload = useProfileStore(
     (state) => state.simulateAvatarUpload,
   );
+  const isLoading = useSimulatedLoading();
 
   const avatarChoices = [
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
@@ -87,39 +90,49 @@ export default function AccountScreen() {
       >
         <View className="mt-6 mb-8">
           <View className="items-center">
-            <Pressable
-              onPress={handleSimulateAvatarUpload}
-              disabled={isAvatarUploading}
-              className="w-[150px] h-[150px] rounded-[36px] overflow-hidden bg-peach-light/40 border-[6px] border-peach-light/10 shadow-lg shadow-peach-medium/25 mb-4 active:opacity-95"
-            >
-              <Image
-                source={{ uri: profile.avatarUrl }}
-                className="w-full h-full"
-                contentFit="cover"
-                transition={200}
-              />
+            {isLoading ? (
+              <>
+                <SkeletonBlock className="w-[150px] h-[150px] rounded-[36px] mb-4" />
+                <SkeletonBlock className="h-7 w-48 rounded-full mb-3" />
+                <SkeletonBlock className="h-3 w-32 rounded-full" />
+              </>
+            ) : (
+              <>
+                <Pressable
+                  onPress={handleSimulateAvatarUpload}
+                  disabled={isAvatarUploading}
+                  className="w-[150px] h-[150px] rounded-[36px] overflow-hidden bg-peach-light/40 border-[6px] border-peach-light/10 shadow-lg shadow-peach-medium/25 mb-4 active:opacity-95"
+                >
+                  <Image
+                    source={{ uri: profile.avatarUrl }}
+                    className="w-full h-full"
+                    contentFit="cover"
+                    transition={200}
+                  />
 
-              <View className="absolute inset-x-0 bottom-0 bg-brand-navy/70 px-3 py-2 flex-row items-center justify-center gap-2">
-                {isAvatarUploading ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Feather name="camera" size={14} color="#FFFFFF" />
-                )}
-                <Text className="text-[11px] font-bold text-white tracking-widest uppercase">
-                  {isAvatarUploading ? "Uploading..." : "Change Avatar"}
+                  <View className="absolute inset-x-0 bottom-0 bg-brand-navy/70 px-3 py-2 flex-row items-center justify-center gap-2">
+                    {isAvatarUploading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Feather name="camera" size={14} color="#FFFFFF" />
+                    )}
+                    <Text className="text-[11px] font-bold text-white tracking-widest uppercase">
+                      {isAvatarUploading ? "Uploading..." : "Change Avatar"}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                <Text className="text-2xl font-bold text-brand-navy mb-1.5">
+                  {profile.fullName}
                 </Text>
-              </View>
-            </Pressable>
-
-            <Text className="text-2xl font-bold text-brand-navy mb-1.5">
-              {profile.fullName}
-            </Text>
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="location-sharp" size={14} color="#FF7E4A" />
-              <Text className="text-xs font-bold text-brand-orange uppercase tracking-wider">
-                {profile.location}
-              </Text>
-            </View>
+                <View className="flex-row items-center gap-1">
+                  <Ionicons name="location-sharp" size={14} color="#FF7E4A" />
+                  <Text className="text-xs font-bold text-brand-orange uppercase tracking-wider">
+                    {profile.location}
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
 
           <View className="mt-6 gap-4">
@@ -128,66 +141,75 @@ export default function AccountScreen() {
                 Profile Fields
               </Text>
 
-              <View className="gap-3">
-                <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
-                  <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
-                    Full Name
-                  </Text>
-                  <TextInput
-                    value={profile.fullName}
-                    onChangeText={(value) => updateField("fullName", value)}
-                    className="text-[16px] font-bold text-brand-navy py-0"
-                    placeholder="Your name"
-                    placeholderTextColor="#8D9CAE"
-                  />
+              {isLoading ? (
+                <View className="gap-3">
+                  <SkeletonBlock className="h-20 rounded-2xl" />
+                  <SkeletonBlock className="h-20 rounded-2xl" />
+                  <SkeletonBlock className="h-20 rounded-2xl" />
+                  <SkeletonBlock className="h-20 rounded-2xl" />
                 </View>
-
-                <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
-                  <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
-                    Email Address
-                  </Text>
-                  <TextInput
-                    value={profile.email}
-                    onChangeText={(value) => updateField("email", value)}
-                    className="text-[16px] font-bold text-brand-navy py-0"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholder="you@example.com"
-                    placeholderTextColor="#8D9CAE"
-                  />
-                </View>
-
-                <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
-                  <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
-                    Location
-                  </Text>
-                  <TextInput
-                    value={profile.location}
-                    onChangeText={(value) =>
-                      updateField("location", value.toUpperCase())
-                    }
-                    className="text-[16px] font-bold text-brand-navy py-0 uppercase"
-                    placeholder="Your location"
-                    placeholderTextColor="#8D9CAE"
-                  />
-                </View>
-
-                <View className="bg-bg-gray/70 rounded-2xl px-4 py-3 flex-row items-center justify-between">
-                  <View>
+              ) : (
+                <View className="gap-3">
+                  <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
                     <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
-                      Joined
+                      Full Name
                     </Text>
-                    <Text className="text-[16px] font-bold text-brand-navy">
-                      {profile.joinedAt}
-                    </Text>
+                    <TextInput
+                      value={profile.fullName}
+                      onChangeText={(value) => updateField("fullName", value)}
+                      className="text-[16px] font-bold text-brand-navy py-0"
+                      placeholder="Your name"
+                      placeholderTextColor="#8D9CAE"
+                    />
                   </View>
-                  <View className="px-3 py-1.5 rounded-full bg-peach-light/20">
-                    <Text className="text-[10px] font-bold text-brand-orange uppercase tracking-widest">
-                      Member
+
+                  <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
+                    <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
+                      Email Address
                     </Text>
+                    <TextInput
+                      value={profile.email}
+                      onChangeText={(value) => updateField("email", value)}
+                      className="text-[16px] font-bold text-brand-navy py-0"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      placeholder="you@example.com"
+                      placeholderTextColor="#8D9CAE"
+                    />
+                  </View>
+
+                  <View className="bg-bg-gray/70 rounded-2xl px-4 py-3">
+                    <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
+                      Location
+                    </Text>
+                    <TextInput
+                      value={profile.location}
+                      onChangeText={(value) =>
+                        updateField("location", value.toUpperCase())
+                      }
+                      className="text-[16px] font-bold text-brand-navy py-0 uppercase"
+                      placeholder="Your location"
+                      placeholderTextColor="#8D9CAE"
+                    />
+                  </View>
+
+                  <View className="bg-bg-gray/70 rounded-2xl px-4 py-3 flex-row items-center justify-between">
+                    <View>
+                      <Text className="text-[11px] font-bold text-gray-sub uppercase tracking-[0.18em] mb-2">
+                        Joined
+                      </Text>
+                      <Text className="text-[16px] font-bold text-brand-navy">
+                        {profile.joinedAt}
+                      </Text>
+                    </View>
+                    <View className="px-3 py-1.5 rounded-full bg-peach-light/20">
+                      <Text className="text-[10px] font-bold text-brand-orange uppercase tracking-widest">
+                        Member
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+              )}
             </View>
 
             <View className="bg-white border border-gray-50 rounded-2xl p-4">
@@ -202,58 +224,78 @@ export default function AccountScreen() {
                 </View>
               </View>
 
-              <View className="gap-3">
-                {profile.addresses.map((address) => (
-                  <View
-                    key={address.id}
-                    className="bg-bg-gray/70 rounded-2xl px-4 py-3"
-                  >
-                    <View className="flex-row items-center justify-between mb-1.5">
-                      <Text className="text-[15px] font-bold text-brand-navy">
-                        {address.label}
+              {isLoading ? (
+                <View className="gap-3">
+                  <SkeletonBlock className="h-20 rounded-2xl" />
+                  <SkeletonBlock className="h-20 rounded-2xl" />
+                </View>
+              ) : (
+                <View className="gap-3">
+                  {profile.addresses.map((address) => (
+                    <View
+                      key={address.id}
+                      className="bg-bg-gray/70 rounded-2xl px-4 py-3"
+                    >
+                      <View className="flex-row items-center justify-between mb-1.5">
+                        <Text className="text-[15px] font-bold text-brand-navy">
+                          {address.label}
+                        </Text>
+                        {address.isDefault && (
+                          <View className="px-2.5 py-1 rounded-full bg-brand-orange/10">
+                            <Text className="text-[9px] font-bold text-brand-orange uppercase tracking-widest">
+                              Default
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-sm text-gray-sub leading-5">
+                        {address.address}
                       </Text>
-                      {address.isDefault && (
-                        <View className="px-2.5 py-1 rounded-full bg-brand-orange/10">
-                          <Text className="text-[9px] font-bold text-brand-orange uppercase tracking-widest">
-                            Default
-                          </Text>
-                        </View>
-                      )}
                     </View>
-                    <Text className="text-sm text-gray-sub leading-5">
-                      {address.address}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         </View>
 
         {/* Options List */}
         <View className="gap-4">
-          {PROFILE_OPTIONS.map((option) => (
-            <Pressable
-              key={option.id}
-              className="flex-row items-center justify-between p-4 bg-white border border-gray-50 rounded-2xl active:bg-gray-50/70"
-            >
-              <View className="flex-row items-center gap-4">
-                {/* Circular peach-light icon backdrop */}
-                <View className="w-12 h-12 rounded-full bg-peach-light/35 items-center justify-center">
-                  <Ionicons
-                    name={option.icon as any}
-                    size={22}
-                    color="#FF7E4A"
-                  />
+          {isLoading
+            ? Array.from({ length: PROFILE_OPTIONS.length }).map((_, index) => (
+                <View
+                  key={`option-skeleton-${index}`}
+                  className="flex-row items-center justify-between p-4 bg-white border border-gray-50 rounded-2xl"
+                >
+                  <View className="flex-row items-center gap-4 flex-1 pr-4">
+                    <SkeletonBlock className="w-12 h-12 rounded-full" />
+                    <SkeletonBlock className="h-4 flex-1 rounded-full max-w-[180px]" />
+                  </View>
+                  <SkeletonBlock className="w-5 h-5 rounded-full" />
                 </View>
-                <Text className="text-[16px] font-bold text-brand-navy">
-                  {option.label}
-                </Text>
-              </View>
+              ))
+            : PROFILE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.id}
+                  className="flex-row items-center justify-between p-4 bg-white border border-gray-50 rounded-2xl active:bg-gray-50/70"
+                >
+                  <View className="flex-row items-center gap-4">
+                    {/* Circular peach-light icon backdrop */}
+                    <View className="w-12 h-12 rounded-full bg-peach-light/35 items-center justify-center">
+                      <Ionicons
+                        name={option.icon as any}
+                        size={22}
+                        color="#FF7E4A"
+                      />
+                    </View>
+                    <Text className="text-[16px] font-bold text-brand-navy">
+                      {option.label}
+                    </Text>
+                  </View>
 
-              <Feather name="chevron-right" size={20} color="#FF7E4A" />
-            </Pressable>
-          ))}
+                  <Feather name="chevron-right" size={20} color="#FF7E4A" />
+                </Pressable>
+              ))}
         </View>
       </ScrollView>
     </SafeAreaView>

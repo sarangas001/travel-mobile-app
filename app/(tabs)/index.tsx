@@ -5,15 +5,33 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { SkeletonBlock } from "@/components/ui/skeleton";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const isLoading = useSimulatedLoading();
   const [selectedCategory, setSelectedCategory] = useState<
     "hiking" | "kayaking" | "camping" | "surfing"
   >("hiking");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const popularCardWidth = Math.min(Math.max(screenWidth * 0.72, 240), 320);
+  const recommendationImageSize = Math.min(
+    Math.max(screenWidth * 0.23, 72),
+    88,
+  );
 
   // Search filter
   const searchedDestinations = MOCK_DESTINATIONS.filter((dest) => {
@@ -31,9 +49,6 @@ export default function HomeScreen() {
   const recommendedDestinations = searchedDestinations.filter(
     (dest) => dest.isRecommended,
   );
-
-  const getDestinationTransitionTag = (destinationId: string) =>
-    `destination-${destinationId}-image`;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
@@ -111,15 +126,22 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
           >
-            {MOCK_CATEGORIES.map((cat) => (
-              <CategoryBubble
-                key={cat.id}
-                id={cat.id}
-                label={cat.label}
-                isSelected={selectedCategory === cat.id}
-                onPress={() => setSelectedCategory(cat.id)}
-              />
-            ))}
+            {isLoading
+              ? MOCK_CATEGORIES.map((cat) => (
+                  <View key={cat.id} className="items-center">
+                    <SkeletonBlock className="w-[68px] h-[68px] rounded-full" />
+                    <SkeletonBlock className="w-14 h-3 rounded-full mt-2.5" />
+                  </View>
+                ))
+              : MOCK_CATEGORIES.map((cat) => (
+                  <CategoryBubble
+                    key={cat.id}
+                    id={cat.id}
+                    label={cat.label}
+                    isSelected={selectedCategory === cat.id}
+                    onPress={() => setSelectedCategory(cat.id)}
+                  />
+                ))}
           </ScrollView>
         </View>
 
@@ -135,7 +157,23 @@ export default function HomeScreen() {
             snapToInterval={280 + 20}
             decelerationRate="fast"
           >
-            {popularDestinations.length === 0 ? (
+            {isLoading ? (
+              Array.from({
+                length: Math.min(3, Math.max(2, Math.round(screenWidth / 160))),
+              }).map((_, index) => (
+                <View
+                  key={`popular-skeleton-${index}`}
+                  style={{ width: popularCardWidth, height: 360 }}
+                  className="rounded-[32px] overflow-hidden bg-white border border-gray-50"
+                >
+                  <SkeletonBlock className="absolute inset-0 rounded-[32px]" />
+                  <View className="absolute inset-0 justify-end p-5">
+                    <SkeletonBlock className="h-5 w-3/4 rounded-full mb-2" />
+                    <SkeletonBlock className="h-3 w-1/2 rounded-full" />
+                  </View>
+                </View>
+              ))
+            ) : popularDestinations.length === 0 ? (
               <View className="w-[280px] h-[360px] rounded-[32px] border border-dashed border-gray-200 items-center justify-center p-6 bg-gray-50/50">
                 <Feather
                   name="map-pin"
@@ -157,7 +195,8 @@ export default function HomeScreen() {
                       params: { id: dest.id },
                     })
                   }
-                  className="w-[280px] h-[360px] rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
+                  style={{ width: popularCardWidth, height: 360 }}
+                  className="rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
                 >
                   <Image
                     source={{ uri: dest.imageUrl }}
@@ -190,7 +229,31 @@ export default function HomeScreen() {
             Recommendation
           </Text>
           <View className="gap-4">
-            {recommendedDestinations.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <View
+                  key={`recommendation-skeleton-${index}`}
+                  className="flex-row p-3 rounded-3xl border border-gray-50 bg-white items-center gap-4"
+                >
+                  <SkeletonBlock
+                    className="rounded-[20px]"
+                    style={{
+                      width: recommendationImageSize,
+                      height: recommendationImageSize,
+                    }}
+                  />
+
+                  <View className="flex-1">
+                    <SkeletonBlock className="h-2.5 w-16 rounded-full mb-2" />
+                    <SkeletonBlock className="h-4 w-10/12 rounded-full mb-3" />
+                    <View className="flex-row items-center gap-1">
+                      <SkeletonBlock className="h-3 w-14 rounded-full" />
+                      <SkeletonBlock className="h-2.5 w-24 rounded-full" />
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : recommendedDestinations.length === 0 ? (
               <View className="p-8 rounded-3xl border border-dashed border-gray-200 items-center justify-center bg-gray-50/50">
                 <Feather
                   name="alert-circle"

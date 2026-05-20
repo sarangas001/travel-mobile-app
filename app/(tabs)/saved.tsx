@@ -1,18 +1,30 @@
 import SwipeableSavedCard from "@/components/SwipeableSavedCard";
+import { SkeletonBlock } from "@/components/ui/skeleton";
 import { MOCK_DESTINATIONS } from "@/constants/mockData";
 import "@/global.css";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 const CATEGORIES = ["Places", "Hotels", "Destinations", "Tours"];
 
 export default function SavedPlacesScreen() {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const [activeTab, setActiveTab] = useState("Destinations");
   const [searchQuery, setSearchQuery] = useState("");
+  const isLoading = useSimulatedLoading();
 
   // Dynamic saved places initialized with IDs dest_5, dest_6, and dest_7
   const [savedIds, setSavedIds] = useState<string[]>([
@@ -30,6 +42,8 @@ export default function SavedPlacesScreen() {
       currentSavedIds.filter((savedId) => savedId !== itemId),
     );
   };
+
+  const skeletonCardHeight = Math.min(Math.max(screenWidth * 0.58, 210), 260);
 
   // Search filter
   const filteredSavedItems = savedItems.filter((item) => {
@@ -110,7 +124,24 @@ export default function SavedPlacesScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
       >
         <View className="gap-6 mt-2">
-          {filteredSavedItems.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <View
+                key={`saved-skeleton-${index}`}
+                style={{ height: skeletonCardHeight }}
+                className="relative w-full overflow-hidden rounded-[24px] bg-white border border-gray-50"
+              >
+                <SkeletonBlock className="absolute inset-0 rounded-[24px]" />
+                <View className="absolute bottom-4 left-4 right-4 bg-white/85 px-5 py-4 rounded-[18px] flex-row justify-between items-center">
+                  <View className="flex-1 pr-4">
+                    <SkeletonBlock className="h-5 w-3/4 rounded-full mb-2" />
+                    <SkeletonBlock className="h-3 w-1/2 rounded-full" />
+                  </View>
+                  <SkeletonBlock className="w-8 h-8 rounded-full" />
+                </View>
+              </View>
+            ))
+          ) : filteredSavedItems.length === 0 ? (
             <View className="py-20 px-6 items-center justify-center">
               <View className="w-20 h-20 rounded-full bg-peach-light/20 items-center justify-center mb-4">
                 <Ionicons

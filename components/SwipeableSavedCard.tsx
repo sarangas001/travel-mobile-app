@@ -27,12 +27,17 @@ export default function SwipeableSavedCard({
   onDelete,
 }: SwipeableSavedCardProps) {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const cardHeight = Math.min(Math.max(SCREEN_WIDTH * 0.58, 210), 260);
 
   // Dimensions and animation values
-  const height = useSharedValue(220);
+  const height = useSharedValue(cardHeight);
   const marginBottom = useSharedValue(24);
   const opacity = useSharedValue(1);
   const translateX = useSharedValue(0);
+
+  React.useEffect(() => {
+    height.value = cardHeight;
+  }, [cardHeight, height]);
 
   const SWIPE_THRESHOLD = -90; // Reveal delete panel at -90px
   const AUTO_DELETE_THRESHOLD = -240; // Dragging past this triggers automatic collapse deletion
