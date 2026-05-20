@@ -4,52 +4,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import '@/global.css';
-
-// Mock Categories
-const CATEGORIES = [
-  { id: 'hiking', label: 'HIKING', icon: 'hiking', type: 'fa6' },
-  { id: 'kayaking', label: 'KAYAKING', icon: 'rowing', type: 'material' },
-  { id: 'camping', label: 'CAMPING', icon: 'campground', type: 'fa6' },
-  { id: 'surfing', label: 'SURFING', icon: 'surfing', type: 'material' },
-];
-
-// Mock Popular Destinations
-const POPULAR_DESTINATIONS = [
-  {
-    id: '1',
-    title: 'The Beauty of Natural Landscape',
-    location: 'Caracas, Venezuela',
-    imageUrl: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '2',
-    title: 'Explore The Cultural Katara Village',
-    location: 'Doha, Qatar',
-    imageUrl: 'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?auto=format&fit=crop&w=600&q=80',
-  },
-];
-
-// Mock Recommendations
-const RECOMMENDATIONS = [
-  {
-    id: '3',
-    country: 'CZECH REPUBLIC',
-    title: 'Prague City Tour',
-    rating: '4.5 OUT OF 5',
-    imageUrl: 'https://images.unsplash.com/photo-1541343072077-27c18d87accb?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: '4',
-    country: 'PARIS, FRANCE',
-    title: 'Eiffel Tower Night Cruise',
-    rating: '4.8 OUT OF 5',
-    imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=300&q=80',
-  },
-];
+import { MOCK_CATEGORIES, MOCK_DESTINATIONS } from '@/constants/mockData';
 
 export default function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('hiking');
+  const [selectedCategory, setSelectedCategory] = useState<'hiking' | 'kayaking' | 'camping' | 'surfing'>('hiking');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Search filter
+  const searchedDestinations = MOCK_DESTINATIONS.filter((dest) => {
+    const matchStr = `${dest.title} ${dest.locationName} ${dest.country}`.toLowerCase();
+    return matchStr.includes(searchQuery.toLowerCase());
+  });
+
+  // Filter popular by selected category and search query
+  const popularDestinations = searchedDestinations.filter(
+    (dest) => dest.category === selectedCategory
+  );
+
+  // Filter recommendations (recommended flag + search query matches)
+  const recommendedDestinations = searchedDestinations.filter(
+    (dest) => dest.isRecommended
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -104,7 +79,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
           >
-            {CATEGORIES.map((cat) => {
+            {MOCK_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;
               return (
                 <Pressable
@@ -152,32 +127,41 @@ export default function HomeScreen() {
             snapToInterval={280 + 20}
             decelerationRate="fast"
           >
-            {POPULAR_DESTINATIONS.map((dest) => (
-              <Pressable
-                key={dest.id}
-                className="w-[280px] h-[360px] rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
-              >
-                <Image
-                  source={{ uri: dest.imageUrl }}
-                  className="w-full h-full"
-                  contentFit="cover"
-                  transition={250}
-                />
-                
-                {/* Visual Gradient Overlay (Simulated via overlay View) */}
-                <View className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 via-transparent to-transparent justify-end p-5">
-                  <Text className="text-white text-lg font-bold mb-1.5 leading-6">
-                    {dest.title}
-                  </Text>
-                  <View className="flex-row items-center gap-1">
-                    <Ionicons name="location-sharp" size={14} color="#FFF" />
-                    <Text className="text-[11px] font-semibold text-white/90">
-                      {dest.location}
+            {popularDestinations.length === 0 ? (
+              <View className="w-[280px] h-[360px] rounded-[32px] border border-dashed border-gray-200 items-center justify-center p-6 bg-gray-50/50">
+                <Feather name="map-pin" size={32} color="#8D9CAE" className="opacity-60 mb-2" />
+                <Text className="text-sm font-bold text-gray-sub text-center">
+                  No popular places found
+                </Text>
+              </View>
+            ) : (
+              popularDestinations.map((dest) => (
+                <Pressable
+                  key={dest.id}
+                  className="w-[280px] h-[360px] rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
+                >
+                  <Image
+                    source={{ uri: dest.imageUrl }}
+                    className="w-full h-full"
+                    contentFit="cover"
+                    transition={250}
+                  />
+                  
+                  {/* Visual Gradient Overlay (Simulated via overlay View) */}
+                  <View className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 via-transparent to-transparent justify-end p-5">
+                    <Text className="text-white text-lg font-bold mb-1.5 leading-6">
+                      {dest.title}
                     </Text>
+                    <View className="flex-row items-center gap-1">
+                      <Ionicons name="location-sharp" size={14} color="#FFF" />
+                      <Text className="text-[11px] font-semibold text-white/90">
+                        {dest.locationName}, {dest.country}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
-            ))}
+                </Pressable>
+              ))
+            )}
           </ScrollView>
         </View>
 
@@ -185,44 +169,53 @@ export default function HomeScreen() {
         <View className="mt-8 px-6">
           <Text className="text-[17px] font-bold text-brand-navy mb-4">Recommendation</Text>
           <View className="gap-4">
-            {RECOMMENDATIONS.map((item) => (
-              <Pressable
-                key={item.id}
-                className="flex-row p-3 rounded-3xl border border-gray-50 bg-white items-center gap-4 active:bg-gray-50"
-              >
-                <View className="w-[84px] h-[84px] rounded-[20px] overflow-hidden bg-peach-light/30">
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    className="w-full h-full"
-                    contentFit="cover"
-                    transition={200}
-                  />
-                </View>
+            {recommendedDestinations.length === 0 ? (
+              <View className="p-8 rounded-3xl border border-dashed border-gray-200 items-center justify-center bg-gray-50/50">
+                <Feather name="alert-circle" size={28} color="#8D9CAE" className="opacity-60 mb-2" />
+                <Text className="text-sm font-bold text-gray-sub text-center">
+                  No recommendations match your search
+                </Text>
+              </View>
+            ) : (
+              recommendedDestinations.map((item) => (
+                <Pressable
+                  key={item.id}
+                  className="flex-row p-3 rounded-3xl border border-gray-50 bg-white items-center gap-4 active:bg-gray-50"
+                >
+                  <View className="w-[84px] h-[84px] rounded-[20px] overflow-hidden bg-peach-light/30">
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      className="w-full h-full"
+                      contentFit="cover"
+                      transition={200}
+                    />
+                  </View>
 
-                <View className="flex-1">
-                  <View className="flex-row items-center gap-1 mb-1">
-                    <Ionicons name="location-sharp" size={12} color="#FF7E4A" />
-                    <Text className="text-[10px] font-bold text-brand-orange uppercase tracking-widest">
-                      {item.country}
-                    </Text>
-                  </View>
-                  <Text className="text-base font-bold text-brand-navy mb-1.5" numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <View className="flex-row items-center gap-1">
-                    {/* Stars */}
-                    <View className="flex-row gap-0.5 mr-1.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Ionicons key={s} name="star" size={12} color="#FF7E4A" />
-                      ))}
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-1 mb-1">
+                      <Ionicons name="location-sharp" size={12} color="#FF7E4A" />
+                      <Text className="text-[10px] font-bold text-brand-orange uppercase tracking-widest">
+                        {item.country}
+                      </Text>
                     </View>
-                    <Text className="text-[10px] font-bold text-gray-sub/70">
-                      {item.rating}
+                    <Text className="text-base font-bold text-brand-navy mb-1.5" numberOfLines={1}>
+                      {item.title}
                     </Text>
+                    <View className="flex-row items-center gap-1">
+                      {/* Stars */}
+                      <View className="flex-row gap-0.5 mr-1.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Ionicons key={s} name="star" size={12} color="#FF7E4A" />
+                        ))}
+                      </View>
+                      <Text className="text-[10px] font-bold text-gray-sub/70">
+                        {item.rating.toFixed(1)} OUT OF 5
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
-            ))}
+                </Pressable>
+              ))
+            )}
           </View>
         </View>
 

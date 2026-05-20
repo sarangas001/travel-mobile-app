@@ -1,37 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import '@/global.css';
-
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'booking',
-    title: 'Booking Confirmed!',
-    description: 'Your trip to Pragser Wildsee, Italy on May 25 is successfully booked.',
-    time: '2 hours ago',
-    unread: true,
-  },
-  {
-    id: '2',
-    type: 'discount',
-    title: 'Summer Special Discount',
-    description: 'Get 20% off on all water sports activities in Bali, Indonesia. Use code SUMMER20.',
-    time: '1 day ago',
-    unread: false,
-  },
-  {
-    id: '3',
-    type: 'alert',
-    title: 'Weather Update: Chamonix',
-    description: 'Perfect snowy conditions are expected for hiking this weekend in South France.',
-    time: '3 days ago',
-    unread: false,
-  },
-];
+import { MOCK_NOTIFICATIONS } from '@/constants/mockData';
 
 export default function NotificationScreen() {
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+  };
+
+  const toggleRead = (id: string) => {
+    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: !n.unread } : n));
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       {/* Header */}
@@ -40,7 +24,10 @@ export default function NotificationScreen() {
           <Feather name="chevron-left" size={24} color="#2A3A4E" />
         </Pressable>
         <Text className="text-xl font-bold text-brand-navy">Notifications</Text>
-        <Pressable className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 active:bg-gray-50">
+        <Pressable 
+          onPress={markAllAsRead}
+          className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 active:bg-gray-50"
+        >
           <Ionicons name="checkmark-done" size={20} color="#2A3A4E" />
         </Pressable>
       </View>
@@ -51,7 +38,7 @@ export default function NotificationScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16 }}
       >
         <View className="gap-4">
-          {NOTIFICATIONS.map((notif) => {
+          {notifications.map((notif) => {
             let iconName: 'calendar' | 'percent' | 'cloud-rain' = 'calendar';
             let iconColor = '#FF7E4A';
             let iconBg = 'bg-peach-light/20';
@@ -66,9 +53,10 @@ export default function NotificationScreen() {
               iconBg = 'bg-blue-50';
             }
 
-            return (
+             return (
               <Pressable
                 key={notif.id}
+                onPress={() => toggleRead(notif.id)}
                 className={`flex-row p-4 rounded-2xl border border-gray-100 items-start gap-4 active:bg-gray-50 ${
                   notif.unread ? 'bg-peach-light/5 border-peach-light/30' : 'bg-white'
                 }`}
