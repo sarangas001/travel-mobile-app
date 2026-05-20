@@ -3,10 +3,13 @@ import { View, Text, ScrollView, TextInput, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import '@/global.css';
 import { MOCK_CATEGORIES, MOCK_DESTINATIONS } from '@/constants/mockData';
+import CategoryBubble from '@/components/CategoryBubble';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<'hiking' | 'kayaking' | 'camping' | 'surfing'>('hiking');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -79,41 +82,15 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
           >
-            {MOCK_CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <Pressable
-                  key={cat.id}
-                  onPress={() => setSelectedCategory(cat.id)}
-                  className="items-center"
-                >
-                  {/* Category Circle Icon */}
-                  <View
-                    className={`w-[68px] h-[68px] rounded-full items-center justify-center transition-all ${
-                      isSelected
-                        ? 'bg-brand-orange shadow-md shadow-brand-orange/30'
-                        : 'bg-white border border-gray-100'
-                    }`}
-                  >
-                    {cat.id === 'hiking' && (
-                      <FontAwesome6 name="person-hiking" size={24} color={isSelected ? '#fff' : '#8D9CAE'} />
-                    )}
-                    {cat.id === 'kayaking' && (
-                      <Ionicons name="boat-outline" size={24} color={isSelected ? '#fff' : '#8D9CAE'} />
-                    )}
-                    {cat.id === 'camping' && (
-                      <FontAwesome6 name="campground" size={22} color={isSelected ? '#fff' : '#8D9CAE'} />
-                    )}
-                    {cat.id === 'surfing' && (
-                      <FontAwesome6 name="water" size={22} color={isSelected ? '#fff' : '#8D9CAE'} />
-                    )}
-                  </View>
-                  <Text className="text-[11px] font-bold text-gray-sub mt-2 tracking-wider">
-                    {cat.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {MOCK_CATEGORIES.map((cat) => (
+              <CategoryBubble
+                key={cat.id}
+                id={cat.id}
+                label={cat.label}
+                isSelected={selectedCategory === cat.id}
+                onPress={() => setSelectedCategory(cat.id)}
+              />
+            ))}
           </ScrollView>
         </View>
 
@@ -138,6 +115,12 @@ export default function HomeScreen() {
               popularDestinations.map((dest) => (
                 <Pressable
                   key={dest.id}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/destination/[id]',
+                      params: { id: dest.id },
+                    })
+                  }
                   className="w-[280px] h-[360px] rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
                 >
                   <Image
@@ -180,6 +163,12 @@ export default function HomeScreen() {
               recommendedDestinations.map((item) => (
                 <Pressable
                   key={item.id}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/destination/[id]',
+                      params: { id: item.id },
+                    })
+                  }
                   className="flex-row p-3 rounded-3xl border border-gray-50 bg-white items-center gap-4 active:bg-gray-50"
                 >
                   <View className="w-[84px] h-[84px] rounded-[20px] overflow-hidden bg-peach-light/30">

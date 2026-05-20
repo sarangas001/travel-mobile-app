@@ -3,12 +3,14 @@ import { View, Text, ScrollView, TextInput, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import '@/global.css';
 import { MOCK_DESTINATIONS } from '@/constants/mockData';
 
 const CATEGORIES = ['Places', 'Hotels', 'Destinations', 'Tours'];
 
 export default function SavedPlacesScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('Destinations');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -102,7 +104,16 @@ export default function SavedPlacesScreen() {
             </View>
           ) : (
             filteredSavedItems.map((item) => (
-              <View key={item.id} className="relative w-full h-[220px] rounded-[24px] overflow-hidden bg-peach-light/40">
+              <Pressable
+                key={item.id}
+                onPress={() =>
+                  router.push({
+                    pathname: '/destination/[id]',
+                    params: { id: item.id },
+                  })
+                }
+                className="relative w-full h-[220px] rounded-[24px] overflow-hidden bg-peach-light/40 active:opacity-95"
+              >
                 {/* Cover Image */}
                 <Image
                   source={{ uri: item.imageUrl }}
@@ -125,11 +136,11 @@ export default function SavedPlacesScreen() {
                     </View>
                   </View>
                   
-                  <Pressable className="w-8 h-8 rounded-full bg-peach-light/30 items-center justify-center active:bg-peach-light/50">
+                  <View className="w-8 h-8 rounded-full bg-peach-light/30 items-center justify-center">
                     <Feather name="chevron-right" size={18} color="#FF7E4A" />
-                  </Pressable>
+                  </View>
                 </View>
-              </View>
+              </Pressable>
             ))
           )}
         </View>
