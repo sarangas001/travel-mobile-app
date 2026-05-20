@@ -4,7 +4,7 @@ import "@/global.css";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -17,15 +17,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SkeletonBlock } from "@/components/ui/skeleton";
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { listDestinations } from "@/services/travel-data";
+import type { Destination } from "@/constants/mockData";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
-  const isLoading = useSimulatedLoading();
+  const simulatedLoading = useSimulatedLoading();
   const [selectedCategory, setSelectedCategory] = useState<
     "hiking" | "kayaking" | "camping" | "surfing"
   >("hiking");
   const [searchQuery, setSearchQuery] = useState("");
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const popularCardWidth = Math.min(Math.max(screenWidth * 0.72, 240), 320);
   const recommendationImageSize = Math.min(
@@ -33,8 +38,46 @@ export default function HomeScreen() {
     88,
   );
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDestinations = async () => {
+      try {
+        setIsFetching(true);
+        setLoadError(null);
+
+        const response = await listDestinations({ limit: 50 });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDestinations(response.destinations);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setDestinations(MOCK_DESTINATIONS);
+        setLoadError("Live backend unavailable, showing local fallback data.");
+      } finally {
+        if (isMounted) {
+          setIsFetching(false);
+        }
+      }
+    };
+
+    loadDestinations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isLoading = simulatedLoading || isFetching;
+
   // Search filter
-  const searchedDestinations = MOCK_DESTINATIONS.filter((dest) => {
+  const searchedDestinations = destinations.filter((dest) => {
     const matchStr =
       `${dest.title} ${dest.locationName} ${dest.country}`.toLowerCase();
     return matchStr.includes(searchQuery.toLowerCase());
@@ -93,6 +136,14 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
+        {loadError ? (
+          <View className="mx-6 mt-2 mb-1 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <Text className="text-sm font-semibold text-amber-900">
+              {loadError}
+            </Text>
+          </View>
+        ) : null}
+
         {/* Search Input */}
         <View className="px-6 py-2">
           <View className="flex-row items-center bg-bg-gray px-4 py-3.5 rounded-2xl gap-3">
@@ -199,7 +250,7 @@ export default function HomeScreen() {
                   className="rounded-[32px] overflow-hidden bg-peach-light/40 relative active:opacity-95"
                 >
                   <Image
-                    source={{ uri: dest.imageUrl }}
+                      source={{ uri: dest.imageUrl }}
                     className="w-full h-full"
                     contentFit="cover"
                     transition={250}

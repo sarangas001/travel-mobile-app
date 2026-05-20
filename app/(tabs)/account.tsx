@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SkeletonBlock } from "@/components/ui/skeleton";
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { getCurrentAccount } from "@/services/travel-data";
 import { useProfileStore } from "@/store/use-profile-store";
 
 const PROFILE_OPTIONS = [
@@ -56,7 +57,34 @@ export default function AccountScreen() {
   const simulateAvatarUpload = useProfileStore(
     (state) => state.simulateAvatarUpload,
   );
+  const hydrateFromAccount = useProfileStore(
+    (state) => state.hydrateFromAccount,
+  );
   const isLoading = useSimulatedLoading();
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadAccount = async () => {
+      try {
+        const account = await getCurrentAccount();
+
+        if (!isMounted) {
+          return;
+        }
+
+        hydrateFromAccount(account);
+      } catch {
+        // Keep the local mock profile when the backend is unavailable or auth is missing.
+      }
+    };
+
+    loadAccount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hydrateFromAccount]);
 
   const avatarChoices = [
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",

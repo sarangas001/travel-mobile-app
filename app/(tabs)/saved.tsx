@@ -4,7 +4,7 @@ import { MOCK_DESTINATIONS } from "@/constants/mockData";
 import "@/global.css";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -16,6 +16,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import {
+  listSavedPlaces,
+  removeSavedPlace,
+} from "@/services/travel-data";
+import type { Destination } from "@/constants/mockData";
 
 const CATEGORIES = ["Places", "Hotels", "Destinations", "Tours"];
 
@@ -24,23 +29,51 @@ export default function SavedPlacesScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const [activeTab, setActiveTab] = useState("Destinations");
   const [searchQuery, setSearchQuery] = useState("");
+  const [savedItems, setSavedItems] = useState<Destination[]>(
+    MOCK_DESTINATIONS.filter((item) => ["dest_5", "dest_6", "dest_7"].includes(item.id)),
+  );
+  const [loadError, setLoadError] = useState<string | null>(null);
   const isLoading = useSimulatedLoading();
 
-  // Dynamic saved places initialized with IDs dest_5, dest_6, and dest_7
-  const [savedIds, setSavedIds] = useState<string[]>([
-    "dest_5",
-    "dest_6",
-    "dest_7",
-  ]);
+  useEffect(() => {
+    let isMounted = true;
 
-  const savedItems = MOCK_DESTINATIONS.filter((item) =>
-    savedIds.includes(item.id),
-  );
+    const loadSavedPlaces = async () => {
+      try {
+        setLoadError(null);
+        const items = await listSavedPlaces();
 
-  const handleDeleteSavedItem = (itemId: string) => {
-    setSavedIds((currentSavedIds) =>
-      currentSavedIds.filter((savedId) => savedId !== itemId),
+        if (!isMounted) {
+          return;
+        }
+
+        setSavedItems(items);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setLoadError("Live saved places unavailable, showing local fallback data.");
+      }
+    };
+
+    loadSavedPlaces();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleDeleteSavedItem = async (itemId: string) => {
+    setSavedItems((currentSavedItems) =>
+      currentSavedItems.filter((savedItem) => savedItem.id !== itemId),
     );
+
+    try {
+      await removeSavedPlace(itemId);
+    } catch {
+      // Keep the optimistic removal even if the backend is temporarily unavailable.
+    }
   };
 
   const skeletonCardHeight = Math.min(Math.max(screenWidth * 0.58, 210), 260);
@@ -123,6 +156,14 @@ export default function SavedPlacesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
       >
+        {loadError ? (
+          <View className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <Text className="text-sm font-semibold text-amber-900">
+              {loadError}
+            </Text>
+          </View>
+        ) : null}
+
         <View className="gap-6 mt-2">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, index) => (

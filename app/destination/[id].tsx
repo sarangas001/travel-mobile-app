@@ -4,7 +4,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   Modal,
@@ -16,6 +16,12 @@ import {
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  getDestination,
+  listDestinationReviews,
+} from "@/services/travel-data";
+import type { Destination, Review } from "@/constants/mockData";
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -24,8 +30,56 @@ export default function DestinationDetailScreen() {
   const { id } = useLocalSearchParams();
 
   // Find matching destination or fallback gracefully to prevent crashes
-  const destination =
-    MOCK_DESTINATIONS.find((d) => d.id === id) || MOCK_DESTINATIONS[0];
+  const [destination, setDestination] = useState<Destination>(MOCK_DESTINATIONS[0]);
+  const [reviews, setReviews] = useState<Review[]>(MOCK_DESTINATIONS[0].reviews);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDestination = async () => {
+      if (!id || Array.isArray(id)) {
+        return;
+      }
+
+      try {
+        setLoadError(null);
+
+        const [detail, reviewList] = await Promise.all([
+          getDestination(id),
+          listDestinationReviews(id),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDestination({
+          ...detail,
+          reviews: reviewList.length ? reviewList : detail.reviews,
+        });
+        setReviews(reviewList.length ? reviewList : detail.reviews);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setLoadError("Live destination data unavailable, showing fallback details.");
+
+        const fallback = MOCK_DESTINATIONS.find((d) => d.id === id) || MOCK_DESTINATIONS[0];
+        setDestination(fallback);
+        setReviews(fallback.reviews);
+      } finally {
+        // no-op; the screen uses the hydrated destination model or fallback content
+      }
+    };
+
+    loadDestination();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   // Component states
   const [activeTab, setActiveTab] = useState<"Overview" | "Promo" | "Review">(
@@ -215,7 +269,7 @@ export default function DestinationDetailScreen() {
 
           {activeTab === "Review" && (
             <View className="mb-6 gap-4">
-              {destination.reviews.map((rev) => (
+              {reviews.map((rev) => (
                 <View
                   key={rev.id}
                   className="p-4 bg-bg-gray rounded-2xl border border-gray-50"
@@ -363,6 +417,14 @@ export default function DestinationDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {loadError ? (
+        <View className="absolute top-16 left-6 right-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
+          <Text className="text-sm font-semibold text-amber-900">
+            {loadError}
+          </Text>
+        </View>
+      ) : null}
 
       {/* Floating Bottom Booking Summary and Action CTA */}
       <View className="absolute bottom-0 inset-x-0 bg-white border-t border-gray-100/70 p-6 flex-row justify-between items-center shadow-lg shadow-brand-navy/10">
