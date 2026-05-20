@@ -1,8 +1,7 @@
 /* eslint-disable import/no-named-as-default-member */
 import axios from "axios";
 
-const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+const API_URL =     process.env.EXPO_PUBLIC_API_URL;
 
 export const travelApi = axios.create({
   baseURL: API_URL,
