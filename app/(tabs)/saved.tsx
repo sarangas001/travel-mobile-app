@@ -4,34 +4,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import '@/global.css';
-
-// Mock data representing Saved Items
-const SAVED_ITEMS = [
-  {
-    id: '1',
-    title: 'Snorkling at Kuta Beach',
-    location: 'BALI, INDONESIA',
-    imageUrl: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '2',
-    title: 'Experience Antelop Canyon',
-    location: 'ARIZONA, UNITED STATES',
-    imageUrl: 'https://images.unsplash.com/photo-1505245208761-ba872912fac0?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '3',
-    title: 'Pragser Wildsee Alpine Lake',
-    location: 'SOUTH TYROL, ITALY',
-    imageUrl: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=600&q=80',
-  },
-];
+import { MOCK_DESTINATIONS } from '@/constants/mockData';
 
 const CATEGORIES = ['Places', 'Hotels', 'Destinations', 'Tours'];
 
 export default function SavedPlacesScreen() {
   const [activeTab, setActiveTab] = useState('Destinations');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Dynamic saved places initialized with IDs dest_5, dest_6, and dest_7
+  const [savedIds, setSavedIds] = useState<string[]>(['dest_5', 'dest_6', 'dest_7']);
+
+  const savedItems = MOCK_DESTINATIONS.filter((item) => savedIds.includes(item.id));
+
+  // Search filter
+  const filteredSavedItems = savedItems.filter((item) => {
+    const matchStr = `${item.title} ${item.locationName} ${item.country}`.toLowerCase();
+    return matchStr.includes(searchQuery.toLowerCase());
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -100,36 +90,48 @@ export default function SavedPlacesScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
       >
         <View className="gap-6 mt-2">
-          {SAVED_ITEMS.map((item) => (
-            <View key={item.id} className="relative w-full h-[220px] rounded-[24px] overflow-hidden bg-peach-light/40">
-              {/* Cover Image */}
-              <Image
-                source={{ uri: item.imageUrl }}
-                className="w-full h-full"
-                contentFit="cover"
-                transition={200}
-              />
-              
-              {/* Floating Bottom Card */}
-              <View className="absolute bottom-4 left-4 right-4 bg-white/95 px-5 py-4 rounded-[18px] flex-row justify-between items-center shadow-md shadow-brand-navy/5">
-                <View className="flex-1 pr-4">
-                  <Text className="text-[17px] font-bold text-brand-navy mb-1" numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <View className="flex-row items-center gap-1">
-                    <Ionicons name="location-sharp" size={14} color="#FF7E4A" />
-                    <Text className="text-xs font-bold text-brand-orange uppercase tracking-wider">
-                      {item.location}
-                    </Text>
-                  </View>
-                </View>
-                
-                <Pressable className="w-8 h-8 rounded-full bg-peach-light/30 items-center justify-center active:bg-peach-light/50">
-                  <Feather name="chevron-right" size={18} color="#FF7E4A" />
-                </Pressable>
+          {filteredSavedItems.length === 0 ? (
+            <View className="py-20 px-6 items-center justify-center">
+              <View className="w-20 h-20 rounded-full bg-peach-light/20 items-center justify-center mb-4">
+                <Ionicons name="heart-dislike-outline" size={36} color="#FF7E4A" />
               </View>
+              <Text className="text-lg font-bold text-brand-navy mb-2">No saved items found</Text>
+              <Text className="text-sm text-gray-sub text-center leading-5 px-6">
+                Explore popular destinations and tap the bookmark to save them to your wishlist.
+              </Text>
             </View>
-          ))}
+          ) : (
+            filteredSavedItems.map((item) => (
+              <View key={item.id} className="relative w-full h-[220px] rounded-[24px] overflow-hidden bg-peach-light/40">
+                {/* Cover Image */}
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  className="w-full h-full"
+                  contentFit="cover"
+                  transition={200}
+                />
+                
+                {/* Floating Bottom Card */}
+                <View className="absolute bottom-4 left-4 right-4 bg-white/95 px-5 py-4 rounded-[18px] flex-row justify-between items-center shadow-md shadow-brand-navy/5">
+                  <View className="flex-1 pr-4">
+                    <Text className="text-[17px] font-bold text-brand-navy mb-1" numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <Ionicons name="location-sharp" size={14} color="#FF7E4A" />
+                      <Text className="text-xs font-bold text-brand-orange uppercase tracking-wider">
+                        {item.locationName}, {item.country}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <Pressable className="w-8 h-8 rounded-full bg-peach-light/30 items-center justify-center active:bg-peach-light/50">
+                    <Feather name="chevron-right" size={18} color="#FF7E4A" />
+                  </Pressable>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

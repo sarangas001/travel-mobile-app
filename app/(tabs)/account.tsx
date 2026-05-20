@@ -5,6 +5,8 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import '@/global.css';
 
+import { MOCK_USER } from '@/constants/mockData';
+
 const PROFILE_OPTIONS = [
   { id: 'edit', label: 'Edit Profile', icon: 'person-outline', iconType: 'ionicons' },
   { id: 'address', label: 'Address', icon: 'location-outline', iconType: 'ionicons' },
@@ -36,7 +38,7 @@ export default function AccountScreen() {
           {/* Avatar Container */}
           <View className="w-[150px] h-[150px] rounded-[36px] overflow-hidden bg-peach-light/40 border-[6px] border-peach-light/10 shadow-lg shadow-peach-medium/25 mb-4">
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80' }}
+              source={{ uri: MOCK_USER.avatarUrl }}
               className="w-full h-full"
               contentFit="cover"
               transition={200}
@@ -44,11 +46,11 @@ export default function AccountScreen() {
           </View>
 
           {/* User Profile Info */}
-          <Text className="text-2xl font-bold text-brand-navy mb-1.5">Brandon Smith</Text>
+          <Text className="text-2xl font-bold text-brand-navy mb-1.5">{MOCK_USER.fullName}</Text>
           <View className="flex-row items-center gap-1">
             <Ionicons name="location-sharp" size={14} color="#FF7E4A" />
             <Text className="text-xs font-bold text-brand-orange uppercase tracking-wider">
-              BALI, INDONESIA
+              {MOCK_USER.location}
             </Text>
           </View>
         </View>
